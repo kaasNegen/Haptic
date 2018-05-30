@@ -1,3 +1,6 @@
+from threading import Thread
+
+import math
 import serial
 
 
@@ -18,7 +21,7 @@ class HapticHandler(object):
             Serial port connection timeout in seconds (the default is 1)
         """
 
-        self.port = serial_ports()[2]
+        self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
         self.connect()
@@ -37,34 +40,16 @@ class HapticHandler(object):
         self._active_serial_connection.close()
 
     def activate(self, degrees, distance):
-        if(self._active_serial_connection.readline() == "A\\r\\n"):
-            self._active_serial_connection.write("<{},{}>".format(degrees, distance))
-        else:
-            pass
 
-def serial_ports():
-    """ Lists serial port names
-        :raises EnvironmentError:
-            On unsupported or unknown platforms
-        :returns:
-            A list of the serial ports available on the system
-    """
-    if sys.platform.startswith('win'):
-        ports = ['COM%s' % (i + 1) for i in range(256)]
-    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-        # this excludes your current terminal "/dev/tty"
-        ports = glob.glob('/dev/tty[A-Za-z]*')
-    elif sys.platform.startswith('darwin'):
-        ports = glob.glob('/dev/tty.*')
-    else:
-        raise EnvironmentError('Unsupported platform')
+        Thread(target=vibrate, args=(self._active_serial_connection, degrees, distance)).start()  # create thread
 
-    result = []
-    for port in ports:
-        try:
-            s = serial.Serial(port)
-            s.close()
-            result.append(port)
-        except (OSError, serial.SerialException):
-            pass
-    return result
+
+def vibrate(serial: serial.Serial, degrees, distance):
+    print('vibrate', degrees, distance)
+
+    if serial is None:
+        return
+
+    serial.write("<{},{}>\n".format(round(degrees), round(distance)).encode('ascii'))
+
+
