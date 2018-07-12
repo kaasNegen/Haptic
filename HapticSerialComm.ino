@@ -156,7 +156,7 @@ void controlHapticModules() {
 //============
 
 void notifyInop() {
-  for (i = 0; i < 255; i++) {
+  for (int i = 0; i < 255; i++) {
     analogWrite(pwmPins[0], i);
     analogWrite(pwmPins[1], i);
     analogWrite(pwmPins[2], i);
