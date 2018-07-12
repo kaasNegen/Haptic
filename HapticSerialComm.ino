@@ -49,14 +49,18 @@ void loop() {
     // this temporary -local- copy is necessary to protect the original data
     // because strtok() used in parseData() replaces the commas with \0
     parseData();
-    //showParsedData(); // Use only with Arduino Serial Monitor.
-    for (int thisPin = 0; thisPin < usedPinCount; thisPin++) { // reset analogWrites
-      analogWrite(pwmPins[thisPin], 0);
-    } 
-    controlHapticModules(); // alter Haptic Modules only when new data is received
-    newData = false;
-    delay(updateInterval);
-    Serial.println('A'); // lets python know that Arduino is Available for new data
+    if (degreesFromPC == -1 || distanceFromPC == -1) {
+      notifyInop(); // Notify user by sending specific pattern to haptic motors.
+    } else {
+      //showParsedData(); // Use only with Arduino Serial Monitor.
+      for (int thisPin = 0; thisPin < usedPinCount; thisPin++) { // reset analogWrites
+        analogWrite(pwmPins[thisPin], 0);
+      }
+      controlHapticModules(); // alter Haptic Modules only when new data is received
+      newData = false;
+      delay(updateInterval);
+      Serial.println('A'); // lets python know that Arduino is Available for new data
+    }
   }
 }
 
@@ -150,3 +154,13 @@ void controlHapticModules() {
 }
 
 //============
+
+void notifyInop() {
+  for (i = 0; i < 255; i++) {
+    analogWrite(pwmPins[0], i);
+    analogWrite(pwmPins[1], i);
+    analogWrite(pwmPins[2], i);
+    analogWrite(pwmPins[3], i);
+    delay(10);
+  }
+}
